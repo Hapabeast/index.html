@@ -516,9 +516,10 @@
 </footer>
 
 <!-- JavaScript -->
+<!-- ⚙️ JAVASCRIPT (Полная замена вашего текущего блока <script>) -->
 <script>
   (function(){
-    // Пузырьки
+    // Пузырьки (без изменений)
     const bubblesContainer = document.getElementById('bubbles');
     for (let i = 0; i < 25; i++) {
       const bubble = document.createElement('div');
@@ -534,23 +535,22 @@
     }
   })();
 
-  // График Chart.js (простой и надёжный)
+  // ---------- ГРАФИК ----------
   let priceChart;
+  let priceHistory = [];
 
   function initChart() {
     const ctx = document.getElementById('chart-container').getContext('2d');
     if (!ctx) return false;
-
-    // Если график уже есть — уничтожим перед созданием нового
     if (priceChart) priceChart.destroy();
 
     priceChart = new Chart(ctx, {
       type: 'line',
       data: {
-        labels: ['10:00', '11:00', '12:00', '13:00', '14:00', '15:00'],
+        labels: [],
         datasets: [{
           label: 'Цена SHRIMP (USD)',
-          data: [0.040, 0.042, 0.045, 0.043, 0.046, 0.044],
+          data: [],
           borderColor: '#2ecc71',
           backgroundColor: 'rgba(46, 204, 113, 0.1)',
           borderWidth: 2,
@@ -563,60 +563,100 @@
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: { mode: 'index', intersect: false }
-        },
+        plugins: { legend: { display: false } },
         scales: {
-          x: { 
-            grid: { color: '#1e4b5e' },
-            ticks: { color: '#9ad4e6' }
-          },
-          y: { 
-            grid: { color: '#1e4b5e' },
-            ticks: { color: '#9ad4e6' }
-          }
+          x: { grid: { color: '#1e4b5e' }, ticks: { color: '#9ad4e6' } },
+          y: { grid: { color: '#1e4b5e' }, ticks: { color: '#9ad4e6' } }
         }
       }
     });
-    console.log('✅ График Chart.js инициализирован');
+    console.log('✅ График готов');
     return true;
   }
 
-  // API Mobula (обновляет цену и капитализацию)
-  const MOBULA_API_KEY = '4824b79f-2c36-46f1-bf84-3bdd6e58ff4e';
-  const TOKEN_ADDRESS = '9QMwCyTFDRvPZF14hFHUP7fdiewf1a3PQeP4bewYCLJV';
-    
-  const BLOCKCHAIN = 'Solana';
+  // ---------- ПОИСК ПАРЫ AXM/SHRIMP ----------
+  const SHRIMP_ADDRESS = '9QMwCyTFDRvPZF14hFHUP7fdiewf1a3PQeP4bewYCLJV';
   
-  async function fetchAndUpdateData() {
+  async function fetchPairData() {
     try {
-      const url = `https://api.mobula.io/api/1/market/data?address=${TOKEN_ADDRESS}&blockchain=Solana`;
-      const response = await fetch(url, {
-        headers: { 'Authorization': MOBULA_API_KEY }
-      });
+      const url = `https://api.dexscreener.com/latest/dex/tokens/${SHRIMP_ADDRESS}`;
+      const response = await fetch(url);
       const data = await response.json();
-      if (data) {
-        document.querySelector('.current-price').innerHTML = 
-          `<i class="fas fa-dollar-sign"></i> $${data.price?.toFixed(6) || '0.042'}`;
-        document.querySelector('.market-cap').innerHTML = 
-          `<i class="fas fa-chart-pie"></i> Капитализация: $${(data.marketCap / 1e6).toFixed(2)}M`;
-        document.querySelector('.price-change').innerHTML = 
-          `<i class="fas fa-caret-${data.priceChange24h >= 0 ? 'up' : 'down'}"></i> ${data.priceChange24h?.toFixed(2)}%`;
+      
+      if (!data.pairs || data.pairs.length === 0) {
+        console.warn('Нет пар для токена');
+        return null;
       }
-    } catch (error) {
-      console.error('Ошибка получения данных:', error);
+
+      // Ищем пару, где baseToken.symbol == 'AXM' или quoteToken.symbol == 'AXM'
+      const targetPair = data.pairs.find(p => 
+        (p.baseToken.symbol === 'AXM' && p.quoteToken.symbol === 'SHRIMP') ||
+        (p.quoteToken.symbol === 'AXM' && p.baseToken.symbol === 'SHRIMP')
+      );
+
+      if (!targetPair) {
+        console.warn('Пара AXM/SHRIMP не найдена, берём основную пару');
+        // Берём пару с наибольшей ликвидностью
+        return data.pairs.reduce((a, b) => (a.liquidity?.usd || 0) > (b.liquidity?.usd || 0) ? a : b);
+      }
+      
+      return targetPair;
+    } catch (err) {
+      console.error('Ошибка DexScreener:', err);
+      return null;
     }
   }
 
-  // Запуск при загрузке
+  async function updateUI() {
+    const pair = await fetchPairData();
+    if (!pair) return;
+
+    const price = parseFloat(pair.priceUsd) || 0;
+    const change24h = pair.priceChange?.h24 || 0;
+    const volume24h = pair.volume?.h24 || 0;
+    const liquidity = pair.liquidity?.usd || 0;
+
+    // Цена
+    document.querySelector('.current-price').innerHTML = 
+      `<i class="fas fa-dollar-sign"></i> $${price.toFixed(8)}`;
+
+    // Изменение
+    const changeEl = document.querySelector('.price-change');
+    const isPositive = change24h >= 0;
+    changeEl.innerHTML = `<i class="fas fa-caret-${isPositive ? 'up' : 'down'}"></i> ${Math.abs(change24h).toFixed(2)}%`;
+    changeEl.style.color = isPositive ? '#2ecc71' : '#e74c3c';
+    changeEl.style.background = isPositive ? '#0a3a2c80' : '#3a0a0a80';
+
+    // Капитализация (здесь используем ликвидность как приближение)
+    document.querySelector('.market-cap').innerHTML = 
+      `<i class="fas fa-chart-pie"></i> Ликвидность: $${(liquidity / 1e6).toFixed(2)}M`;
+
+    // Статистика
+    const statCards = document.querySelectorAll('.stat-card');
+    if (statCards[0]) statCards[0].querySelector('.stat-number').textContent = `$${price.toFixed(6)}`;
+    if (statCards[1]) statCards[1].querySelector('.stat-number').textContent = `$${(volume24h / 1e3).toFixed(1)}K`;
+
+    // График
+    const now = new Date();
+    const timeLabel = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    priceHistory.push({ x: timeLabel, y: price });
+    if (priceHistory.length > 20) priceHistory.shift();
+
+    if (priceChart) {
+      priceChart.data.labels = priceHistory.map(p => p.x);
+      priceChart.data.datasets[0].data = priceHistory.map(p => p.y);
+      priceChart.update();
+    }
+  }
+
+  // Запуск
   document.addEventListener('DOMContentLoaded', () => {
     initChart();
-    fetchAndUpdateData();
-    setInterval(fetchAndUpdateData, 30000);
+    updateUI();
+    setInterval(updateUI, 60000); // каждые 60 сек
   });
 
-  // Кнопка "Подключить аккаунт"
+  // Кнопка
   document.querySelector('.btn-connect-account')?.addEventListener('click', () => {
     alert('🦐 Подключение аккаунта — скоро будет доступно!');
   });

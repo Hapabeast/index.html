@@ -471,12 +471,15 @@
     <div class="market-cap">
       <i class="fas fa-chart-pie"></i> Капитализация: ~ 128,400 BNB
     </div>
-    <!-- СВЕЧНОЙ ГРАФИК (КОНТЕЙНЕР) -->
-   <div id="chart-container" class="chart-container"></div>
+    <div id="chart-container" class="chart-container"></div>
+    <div class="chart-note">
+      <i class="far fa-clock"></i> Обновление через API Axiome (скоро)
+    </div>
+    <div style="margin-top: 12px; color: #aad8e6; font-size:0.9rem;">
+      <i class="fas fa-robot"></i> синхронизация с Telegram ботом
     </div>
   </div>
 </section>
-
 <!-- 📈 СТАТИСТИКА -->
 <div class="container stats-section">
   <div class="stats-grid">
@@ -549,106 +552,98 @@
       bubble.style.background = `radial-gradient(circle at 30% 30%, rgba(200,240,255,0.8), rgba(100,200,255,0.2))`;
       bubblesContainer.appendChild(bubble);
     }
-
-    // Можно добавить интерактивность по желанию
-    console.log('Shrimp and Peace — обновлённая версия без лишних кнопок.');
   })();
-  // Функция для инициализации графика
-function initChart() {
-    const chartContainer = document.getElementById('chart-container');
-    if (!chartContainer) {
-        console.warn('Контейнер графика не найден');
-        return null;
+
+  // Инициализация графика
+  let chart, candlestickSeries;
+
+  function initChart() {
+    const container = document.getElementById('chart-container');
+    if (!container) {
+      console.error('Контейнер графика не найден');
+      return false;
     }
-    
-    // Проверка, что библиотека загружена
     if (typeof LightweightCharts === 'undefined') {
-        console.error('Библиотека LightweightCharts не загружена!');
-        return null;
+      console.error('Библиотека LightweightCharts не загружена');
+      return false;
     }
-    
-    const chart = LightweightCharts.createChart(chartContainer, {
-        width: chartContainer.clientWidth,
-        height: 120,
-        layout: {
-            background: { color: '#0b2a38' },
-            textColor: '#9ad4e6',
-        },
-        grid: {
-            vertLines: { color: '#1e4b5e' },
-            horzLines: { color: '#1e4b5e' },
-        },
-        timeScale: {
-            timeVisible: true,
-            secondsVisible: false,
-        },
+
+    chart = LightweightCharts.createChart(container, {
+      width: container.clientWidth,
+      height: 120,
+      layout: {
+        background: { color: '#0b2a38' },
+        textColor: '#9ad4e6',
+      },
+      grid: {
+        vertLines: { color: '#1e4b5e' },
+        horzLines: { color: '#1e4b5e' },
+      },
+      timeScale: {
+        timeVisible: true,
+        secondsVisible: false,
+      },
     });
-    
-    return { chart, candlestickSeries };
-}
 
-// Замените 'YOUR_MOBULA_API_KEY' на ваш реальный ключ от Mobula
-const MOBULA_API_KEY = '4824b79f-2c36-46f1-bf84-3bdd6e58ff4e';
-// Замените на адрес вашего токена SHRIMP в сети Solana
-const TOKEN_ADDRESS = 'axm1lq9fjtgtd50kzf30uqgae3mh0tmp54ek4gmak8d97930dhgy4rgqaxzuzz';
+    candlestickSeries = chart.addCandlestickSeries({
+      upColor: '#2ecc71',
+      downColor: '#e74c3c',
+      borderDownColor: '#e74c3c',
+      borderUpColor: '#2ecc71',
+      wickDownColor: '#e74c3c',
+      wickUpColor: '#2ecc71',
+    });
 
-async function fetchAndUpdateData() {
-    const url = `https://api.mobula.io/api/1/market/data?address=${TOKEN_ADDRESS}&blockchain=Solana`;
-    
-    try {
-        const response = await fetch(url, {
-            headers: { 'Authorization': MOBULA_API_KEY }
-        });
-        const data = await response.json();
-        
-        if (data) {
-            // Обновляем UI
-            document.querySelector('.current-price').innerHTML = 
-                `<i class="fas fa-dollar-sign"></i> $${data.price?.toFixed(6) || '0.042'}`;
-            document.querySelector('.market-cap').innerHTML = 
-                `<i class="fas fa-chart-pie"></i> Капитализация: $${(data.marketCap / 1e6).toFixed(2)}M`;
-            document.querySelector('.price-change').innerHTML = 
-                `<i class="fas fa-caret-${data.priceChange24h >= 0 ? 'up' : 'down'}"></i> ${data.priceChange24h?.toFixed(2)}%`;
-        }
-    } catch (error) {
-        console.error('Ошибка получения данных с Mobula:', error);
-    }
-}
-
-// Запускаем при загрузке страницы
-document.addEventListener('DOMContentLoaded', () => {
-    const chartInstance = initChart();
-    if (!chartInstance) return;
-    
-    const { chart, candlestickSeries } = chartInstance;
-    
-    // Заглушка с данными
+    // Тестовые данные
     const dummyData = [
-        { time: '2024-04-01', open: 0.040, high: 0.045, low: 0.039, close: 0.042 },
-        { time: '2024-04-02', open: 0.042, high: 0.048, low: 0.041, close: 0.046 },
-        { time: '2024-04-03', open: 0.046, high: 0.047, low: 0.043, close: 0.044 },
-        { time: '2024-04-04', open: 0.044, high: 0.046, low: 0.042, close: 0.045 },
+      { time: '2024-04-01', open: 0.040, high: 0.045, low: 0.039, close: 0.042 },
+      { time: '2024-04-02', open: 0.042, high: 0.048, low: 0.041, close: 0.046 },
+      { time: '2024-04-03', open: 0.046, high: 0.047, low: 0.043, close: 0.044 },
+      { time: '2024-04-04', open: 0.044, high: 0.046, low: 0.042, close: 0.045 },
     ];
     candlestickSeries.setData(dummyData);
-    
-    // Обновление данных
-    fetchAndUpdateData();
-    setInterval(fetchAndUpdateData, 30000);
-    
-    // Ресайз графика при изменении размера окна
+
     window.addEventListener('resize', () => {
-        const container = document.getElementById('chart-container');
-        if (container) {
-            chart.applyOptions({ width: container.clientWidth });
-        }
+      if (container) {
+        chart.applyOptions({ width: container.clientWidth });
+      }
     });
-});
-  function initChart() {
-    console.log('✅ initChart вызвана');
-    const chartContainer = document.getElementById('chart-container');
-    console.log('Контейнер:', chartContainer);
-    // ... остальной код
-}
+
+    console.log('✅ График инициализирован');
+    return true;
+  }
+
+  // API Mobula (заглушка, пока не готово)
+  const MOBULA_API_KEY = '4824b79f-2c36-46f1-bf84-3bdd6e58ff4e';
+  const TOKEN_ADDRESS = 'axm1lq9fjtgtd50kzf30uqgae3mh0tmp54ek4gmak8d97930dhgy4rgqaxzuzz';
+
+  async function fetchAndUpdateData() {
+    try {
+      const url = `https://api.mobula.io/api/1/market/data?address=${TOKEN_ADDRESS}&blockchain=Solana`;
+      const response = await fetch(url, {
+        headers: { 'Authorization': MOBULA_API_KEY }
+      });
+      const data = await response.json();
+      if (data) {
+        document.querySelector('.current-price').innerHTML = 
+          `<i class="fas fa-dollar-sign"></i> $${data.price?.toFixed(6) || '0.042'}`;
+        document.querySelector('.market-cap').innerHTML = 
+          `<i class="fas fa-chart-pie"></i> Капитализация: $${(data.marketCap / 1e6).toFixed(2)}M`;
+        document.querySelector('.price-change').innerHTML = 
+          `<i class="fas fa-caret-${data.priceChange24h >= 0 ? 'up' : 'down'}"></i> ${data.priceChange24h?.toFixed(2)}%`;
+      }
+    } catch (error) {
+      console.error('Ошибка получения данных:', error);
+    }
+  }
+
+  // Запуск после загрузки DOM
+  document.addEventListener('DOMContentLoaded', () => {
+    if (initChart()) {
+      fetchAndUpdateData();
+      setInterval(fetchAndUpdateData, 30000);
+    }
+  });
 </script>
 
 </body>

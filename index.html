@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
   <title>Shrimp and Peace · SaP</title>
   
-  <!-- Библиотека графиков -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <!-- Chart.js для графика -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   
   <!-- Шрифты и иконки -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,8 +15,12 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   
   <style>
-    .chart-container
-    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     body {
       font-family: 'Inter', sans-serif;
       background: #0a1922;
@@ -203,28 +207,18 @@
     }
 
     /* Визуальный блок с графиком */
-   .hero-visual {
-  background: rgba(10, 50, 70, 0.4);
-  backdrop-filter: blur(12px);
-  border-radius: 32px;
-  padding: 1.8rem;
-  box-shadow: 0 30px 40px -15px rgba(0,0,0,0.5), inset 0 0 0 1px #48cae466;
-  /* aspect-ratio: 1 / 0.9; */ /* ← ЭТУ СТРОКУ УДАЛИ ИЛИ ЗАКОММЕНТИРУЙ */
-  min-height: 460px; /* ← ДОБАВЬ ЭТУ СТРОКУ */
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  border: 1px solid #48cae4;
-}
-
-.chart-container {
-  background: #0b2a38;
-  border-radius: 16px;
-  padding: 12px;
-  border: 1px solid #0096c7;
-  margin: 1rem 0;
-  height: 200px; /* ← УВЕЛИЧЬ ВЫСОТУ */
-}
+    .hero-visual {
+      background: rgba(10, 50, 70, 0.4);
+      backdrop-filter: blur(12px);
+      border-radius: 32px;
+      padding: 1.8rem;
+      box-shadow: 0 30px 40px -15px rgba(0,0,0,0.5), inset 0 0 0 1px #48cae466;
+      min-height: 460px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      border: 1px solid #48cae4;
+    }
     .price-header {
       display: flex;
       justify-content: space-between;
@@ -249,15 +243,13 @@
       margin-bottom: 1.2rem;
     }
     .chart-container {
-  background: #0b2a38;
-  border-radius: 16px;
-  padding: 12px;
-  border: 1px solid #0096c7;
-  margin: 1rem 0;
-  height: 160px; /* Увеличили высоту */
-  position: relative;
-  overflow: hidden; /* Чтобы график не вылезал */
-}
+      background: #0b2a38;
+      border-radius: 16px;
+      padding: 12px;
+      border: 1px solid #0096c7;
+      margin: 1rem 0;
+      height: 200px;
+    }
     .chart-note {
       color: #9ad4e6;
       font-size: 0.8rem;
@@ -420,45 +412,35 @@
     <button class="btn-connect-account"><i class="fas fa-link"></i> Подключить аккаунт</button>
   </div>
   
- <!-- Блок с ценой и графиком -->
-<div class="hero-visual">
-  <div class="price-header">
-    <span class="current-price"><i class="fas fa-dollar-sign"></i> 0.042 BNB</span>
-    <span class="price-change"><i class="fas fa-caret-up"></i> +3.2%</span>
+  <!-- Блок с ценой и графиком -->
+  <div class="hero-visual">
+    <div class="price-header">
+      <span class="current-price"><i class="fas fa-dollar-sign"></i> -- AXM</span>
+      <span class="price-change"><i class="fas fa-minus"></i> 0.00%</span>
+    </div>
+    <div class="market-cap">
+      <i class="fas fa-chart-pie"></i> Ликвидность: -- 
+    </div>
+    <div id="chart-container" class="chart-container"></div>
+    <div class="chart-note">
+      <i class="far fa-clock"></i> Данные с Axiome Trade · обновляются каждые 60 сек
+    </div>
+    <div style="margin-top: 12px; color: #aad8e6; font-size:0.9rem;">
+      <i class="fas fa-robot"></i> синхронизация с Telegram ботом
+    </div>
   </div>
-  <div class="market-cap">
-    <i class="fas fa-chart-pie"></i> Капитализация: ~ 128,400 BNB
-  </div>
-  <div id="chart-container" class="chart-container"></div>
-  <div class="chart-note">
-    <i class="far fa-clock"></i> Обновление через API Axiome (скоро)
-  </div>
-  <div style="margin-top: 12px; color: #aad8e6; font-size:0.9rem;">
-    <i class="fas fa-robot"></i> синхронизация с Telegram ботом
-  </div>
-</div>
-  
-  <!-- TradingView Widget END -->
-  <div id="chart-container"
-    class="chart-container"></div>
-  <div class="chart-note">
-    <i class="far fa-clock"></i> Обновление через API Axiome (скоро)
-  </div>
-  <div style="margin-top: 12px; color: #aad8e6; font-size:0.9rem;">
-    <i class="fas fa-robot"></i> синхронизация с Telegram ботом
-  </div>
-</div>
+</section>
 
 <!-- Статистика -->
 <div class="container stats-section">
   <div class="stats-grid">
     <div class="stat-card">
-      <div class="stat-number">$0.042</div>
-      <div class="stat-label"><i class="fas fa-coins"></i> Текущая цена (SHRIMP)</div>
+      <div class="stat-number">--</div>
+      <div class="stat-label"><i class="fas fa-coins"></i> Цена (AXM)</div>
     </div>
     <div class="stat-card">
-      <div class="stat-number">₿ 128.4K</div>
-      <div class="stat-label"><i class="fas fa-chart-bar"></i> Market Cap</div>
+      <div class="stat-number">--</div>
+      <div class="stat-label"><i class="fas fa-chart-bar"></i> Объём (24ч)</div>
     </div>
     <div class="stat-card">
       <div class="stat-number">80+</div>
@@ -503,10 +485,10 @@
   </div>
 </footer>
 
-
+<!-- JavaScript -->
 <script>
   (function(){
-    // Пузырьки (без изменений)
+    // Пузырьки
     const bubblesContainer = document.getElementById('bubbles');
     for (let i = 0; i < 25; i++) {
       const bubble = document.createElement('div');
@@ -522,7 +504,7 @@
     }
   })();
 
-  // ---------- ГРАФИК ----------
+  // ---------- ГРАФИК CHART.JS ----------
   let priceChart;
   let priceHistory = [];
 
@@ -557,11 +539,11 @@
         }
       }
     });
-    console.log('✅ График готов');
+    console.log('✅ График инициализирован');
     return true;
   }
 
-  // ---------- API AXIOME ----------
+  // ---------- API AXIOME (прямая ссылка на пулы) ----------
   const API_URL = 'https://api-idx.axiomechain.pro/swap/pools/infinite?perPage=40';
   // Адрес токена SHRIM (Shrimps & Peace) из ответа API
   const SHRIM_TOKEN_ADDRESS = 'axm13falgv7wf8v3pqcwhr7suvm8e8j0hu03fjmtwrh2vek2589tdazq5p0atj';
@@ -576,7 +558,7 @@
         return null;
       }
 
-      // Ищем пул с нашим токеном SHRIM (как token1 или token2)
+      // Ищем пул с нашим токеном SHRIM
       const pool = data.items.find(item => 
         item.token1.address === SHRIM_TOKEN_ADDRESS || 
         item.token2.address === SHRIM_TOKEN_ADDRESS
@@ -587,28 +569,23 @@
         return null;
       }
 
-      // Определяем, является ли SHRIM первым или вторым токеном
+      // Определяем позицию токена
       const isShrimpToken1 = pool.token1.address === SHRIM_TOKEN_ADDRESS;
       const shrimpReserve = isShrimpToken1 ? parseFloat(pool.token1.reserve) : parseFloat(pool.token2.reserve);
       const axmReserve = isShrimpToken1 ? parseFloat(pool.token2.reserve) : parseFloat(pool.token1.reserve);
       
-      // Цена SHRIMP в AXM (учитываем decimals, обычно 6)
       const shrimpDecimals = isShrimpToken1 ? pool.token1.decimals : pool.token2.decimals;
       const axmDecimals = isShrimpToken1 ? pool.token2.decimals : pool.token1.decimals;
       
+      // Цена SHRIMP в AXM
       const price = (axmReserve / Math.pow(10, axmDecimals)) / (shrimpReserve / Math.pow(10, shrimpDecimals));
       
       // Дополнительные данные
-      const change24h = pool.chg24 * 100; // переводим в проценты
-      const volume24h = parseFloat(pool.vol24) / 1e6; // переводим в читаемый вид (например, в млн)
-      const liquidity = parseFloat(pool.liq) / 1e6;
+      const change24h = pool.chg24 * 100; // в проценты
+      const volume24h = parseFloat(pool.vol24) / 1e6; // млн
+      const liquidity = parseFloat(pool.liq) / 1e6; // млн
 
-      return {
-        price,
-        change24h,
-        volume24h,
-        liquidity
-      };
+      return { price, change24h, volume24h, liquidity };
     } catch (err) {
       console.error('Ошибка получения данных Axiome:', err);
       return null;
@@ -621,28 +598,27 @@
 
     const { price, change24h, volume24h, liquidity } = data;
 
-    // Обновление цены
+    // Цена
     document.querySelector('.current-price').innerHTML = 
       `<i class="fas fa-dollar-sign"></i> ${price.toFixed(8)} AXM`;
 
-    // Изменение за 24ч
+    // Изменение 24ч
     const changeEl = document.querySelector('.price-change');
     const isPositive = change24h >= 0;
     changeEl.innerHTML = `<i class="fas fa-caret-${isPositive ? 'up' : 'down'}"></i> ${Math.abs(change24h).toFixed(2)}%`;
     changeEl.style.color = isPositive ? '#2ecc71' : '#e74c3c';
     changeEl.style.background = isPositive ? '#0a3a2c80' : '#3a0a0a80';
 
-    // Капитализация/ликвидность
+    // Ликвидность
     document.querySelector('.market-cap').innerHTML = 
       `<i class="fas fa-chart-pie"></i> Ликвидность: $${liquidity.toFixed(2)}M`;
 
-    // Статистика в карточках
+    // Карточки статистики
     const statCards = document.querySelectorAll('.stat-card');
     if (statCards[0]) statCards[0].querySelector('.stat-number').textContent = `${price.toFixed(6)} AXM`;
     if (statCards[1]) statCards[1].querySelector('.stat-number').textContent = `$${volume24h.toFixed(1)}K`;
-    if (statCards[2]) statCards[2].querySelector('.stat-number').textContent = `$${liquidity.toFixed(1)}M`;
 
-    // График
+    // Обновление графика
     const now = new Date();
     const timeLabel = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     priceHistory.push({ x: timeLabel, y: price });
@@ -661,7 +637,7 @@
   document.addEventListener('DOMContentLoaded', () => {
     initChart();
     updateUI();
-    setInterval(updateUI, 60000); // каждые 60 секунд
+    setInterval(updateUI, 60000); // обновление каждую минуту
   });
 
   // Кнопка "Подключить аккаунт"
@@ -669,6 +645,6 @@
     alert('🦐 Подключение аккаунта — скоро будет доступно!');
   });
 </script>
-  
+
 </body>
 </html>

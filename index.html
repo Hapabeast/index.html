@@ -545,14 +545,27 @@
 
   // ---------- API AXIOME (с CORS-прокси) ----------
   const BASE_URL = 'https://api-idx.axiomechain.pro/swap/pools/infinite?perPage=40';
-  const PROXY_URL = 'https://corsproxy.io/?' + encodeURIComponent(BASE_URL);
+  const PROXY_URL = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(BASE_URL);
   
   // Адрес токена SHRIM (Shrimps & Peace) из ответа API
   const SHRIM_TOKEN_ADDRESS = 'axm13falgv7wf8v3pqcwhr7suvm8e8j0hu03fjmtwrh2vek2589tdazq5p0atj';
 
+  // Статус загрузки
+  function setLoadingStatus(isLoading, errorMsg = '') {
+    const note = document.querySelector('.chart-note');
+    if (isLoading) {
+      note.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Загрузка данных с Axiome...';
+    } else if (errorMsg) {
+      note.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${errorMsg}`;
+    } else {
+      note.innerHTML = '<i class="far fa-clock"></i> Данные с Axiome Trade · обновляются каждые 60 сек';
+    }
+  }
+
   async function fetchPairData() {
+    setLoadingStatus(true);
     try {
-      console.log('🔄 Запрос к API через прокси...');
+      console.log('🔄 Запрос к API через прокси allorigins...');
       const response = await fetch(PROXY_URL);
       if (!response.ok) {
         throw new Error(`HTTP error ${response.status}`);
@@ -561,8 +574,7 @@
       console.log('📦 Получены данные:', data);
       
       if (!data.items || data.items.length === 0) {
-        console.warn('⚠️ Пулы не найдены');
-        return null;
+        throw new Error('Пулы не найдены');
       }
 
       // Ищем пул с токеном SHRIM
@@ -572,8 +584,7 @@
       );
 
       if (!pool) {
-        console.warn('⚠️ Пул с SHRIM не найден');
-        return null;
+        throw new Error('Пул с SHRIM не найден');
       }
 
       console.log('🎯 Найден пул:', pool);
@@ -594,12 +605,11 @@
       const volume24h = parseFloat(pool.vol24) / 1e6; // млн
       const liquidity = parseFloat(pool.liq) / 1e6; // млн
 
+      setLoadingStatus(false);
       return { price, change24h, volume24h, liquidity };
     } catch (err) {
       console.error('❌ Ошибка получения данных Axiome:', err);
-      // Показываем ошибку на странице
-      document.querySelector('.chart-note').innerHTML = 
-        '<i class="fas fa-exclamation-triangle"></i> Ошибка загрузки данных. Проверьте консоль.';
+      setLoadingStatus(false, 'Ошибка загрузки: ' + err.message);
       return null;
     }
   }
@@ -642,9 +652,6 @@
       priceChart.update();
     }
 
-    // Восстанавливаем подпись, если всё ок
-    document.querySelector('.chart-note').innerHTML = 
-      '<i class="far fa-clock"></i> Данные с Axiome Trade · обновляются каждые 60 сек';
     console.log(`✅ Обновлено: цена ${price.toFixed(8)} AXM, изм. ${change24h.toFixed(2)}%`);
   }
 

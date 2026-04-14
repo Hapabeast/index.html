@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
   <title>Shrimp and Peace · SaP</title>
-  <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+  <script src="https://unpkg.com/lightweight-charts@4.0.0/dist/lightweight-charts.standalone.production.js"></script>
   
   <!-- 🔗 ПОДКЛЮЧЕНИЕ ШРИФТОВ И ИКОНОК -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -31,14 +31,21 @@
       overflow-x: hidden;
     }
     
-chart-container {
-    background: #0b2a38;
-    border-radius: 16px;
-    padding: 12px;
-    border: 1px solid #0096c7;
-    margin: 1rem 0;
-    height: 120px; /* Задаем высоту как у вашего старого графика */
-}
+    .market-cap {
+      font-size: 1.1rem;
+      color: #bde0fe;
+      margin-bottom: 1.2rem;
+    }
+    
+    .chart-container {
+      background: #0b2a38;
+      border-radius: 16px;
+      padding: 12px;
+      border: 1px solid #0096c7;
+      margin: 1rem 0;
+      height: 120px;
+    }
+    
     /* ===== 🦐 ФОН С КРЕВЕТКОЙ (70% ПРОЗРАЧНОСТИ) ===== */
     .shrimp-bg {
       position: fixed;
@@ -444,6 +451,7 @@ chart-container {
 </div>
 
 <!-- 🌟 HERO -->
+<!-- 🌟 HERO -->
 <section class="container hero">
   <div>
     <span class="hero-badge"><i class="fas fa-arrow-trend-up"></i> Креветка растёт · SaP</span>
@@ -451,8 +459,8 @@ chart-container {
     <p class="hero-description">
       Покупай слот однажды — владей вечно. Корми креветку, зарабатывай токены и получай бонусы с рефералов.
     </p>
-     <button class="btn-connect-account"><i class="fas fa-link"></i> Подключить аккаунт</button>
-</div>
+    <button class="btn-connect-account"><i class="fas fa-link"></i> Подключить аккаунт</button>
+  </div>
   
   <!-- 📊 БЛОК С ЦЕНОЙ И КАПИТАЛИЗАЦИЕЙ -->
   <div class="hero-visual">
@@ -463,16 +471,8 @@ chart-container {
     <div class="market-cap">
       <i class="fas fa-chart-pie"></i> Капитализация: ~ 128,400 BNB
     </div>
-    <!-- СВЕЧНОЙ ГРАФИК -->
-   <div id="chart-container" class="chart-container"></div>
-      <div class="candle"></div>
-      <div class="candle"></div>
-      <div class="candle"></div>
-      <div class="candle red"></div>
-      <div class="candle"></div>
-      <div class="candle red"></div>
-      <div class="candle"></div>
-    </div>
+    <!-- СВЕЧНОЙ ГРАФИК (КОНТЕЙНЕР) -->
+    <div id="chart-container" class="chart-container"></div>
     <div class="chart-note">
       <i class="far fa-clock"></i> Обновление через API Axiome (скоро)
     </div>
@@ -561,7 +561,16 @@ chart-container {
   // Функция для инициализации графика
 function initChart() {
     const chartContainer = document.getElementById('chart-container');
-    if (!chartContainer) return;
+    if (!chartContainer) {
+        console.warn('Контейнер графика не найден');
+        return null;
+    }
+    
+    // Проверка, что библиотека загружена
+    if (typeof LightweightCharts === 'undefined') {
+        console.error('Библиотека LightweightCharts не загружена!');
+        return null;
+    }
     
     const chart = LightweightCharts.createChart(chartContainer, {
         width: chartContainer.clientWidth,
@@ -578,15 +587,6 @@ function initChart() {
             timeVisible: true,
             secondsVisible: false,
         },
-    });
-
-    const candlestickSeries = chart.addCandlestickSeries({
-        upColor: '#2ecc71',
-        downColor: '#e74c3c',
-        borderDownColor: '#e74c3c',
-        borderUpColor: '#2ecc71',
-        wickDownColor: '#e74c3c',
-        wickUpColor: '#2ecc71',
     });
     
     return { chart, candlestickSeries };
@@ -622,9 +622,12 @@ async function fetchAndUpdateData() {
 
 // Запускаем при загрузке страницы
 document.addEventListener('DOMContentLoaded', () => {
-    const { chart, candlestickSeries } = initChart();
+    const chartInstance = initChart();
+    if (!chartInstance) return;
     
-    // Заглушка с данными, пока не появятся реальные
+    const { chart, candlestickSeries } = chartInstance;
+    
+    // Заглушка с данными
     const dummyData = [
         { time: '2024-04-01', open: 0.040, high: 0.045, low: 0.039, close: 0.042 },
         { time: '2024-04-02', open: 0.042, high: 0.048, low: 0.041, close: 0.046 },
@@ -633,9 +636,17 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
     candlestickSeries.setData(dummyData);
     
-    // Первое обновление и затем каждые 30 секунд
+    // Обновление данных
     fetchAndUpdateData();
     setInterval(fetchAndUpdateData, 30000);
+    
+    // Ресайз графика при изменении размера окна
+    window.addEventListener('resize', () => {
+        const container = document.getElementById('chart-container');
+        if (container) {
+            chart.applyOptions({ width: container.clientWidth });
+        }
+    });
 });
 </script>
 

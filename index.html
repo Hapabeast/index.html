@@ -543,116 +543,137 @@
     return true;
   }
 
-  // ---------- API AXIOME (с CORS-прокси) ----------
+  // ---------- НАСТРОЙКИ API ----------
   const BASE_URL = 'https://api-idx.axiomechain.pro/swap/pools/infinite?perPage=40';
-  const PROXY_URL = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(BASE_URL);
-  
-  // Адрес токена SHRIM (Shrimps & Peace) из ответа API
   const SHRIM_TOKEN_ADDRESS = 'axm13falgv7wf8v3pqcwhr7suvm8e8j0hu03fjmtwrh2vek2589tdazq5p0atj';
 
-  // Статус загрузки
-  function setLoadingStatus(isLoading, errorMsg = '') {
+  // Список публичных CORS-прокси (пробуем по очереди)
+  const PROXY_LIST = [
+    'https://api.allorigins.win/raw?url=',
+    'https://corsproxy.io/?',
+    'https://cors-anywhere.herokuapp.com/',
+    'https://thingproxy.freeboard.io/fetch/'
+  ];
+
+  let currentProxyIndex = 0;
+  let isLoading = false;
+
+  function setStatus(text, isError = false) {
     const note = document.querySelector('.chart-note');
-    if (isLoading) {
-      note.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Загрузка данных с Axiome...';
-    } else if (errorMsg) {
-      note.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${errorMsg}`;
+    if (isError) {
+      note.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${text}`;
     } else {
-      note.innerHTML = '<i class="far fa-clock"></i> Данные с Axiome Trade · обновляются каждые 60 сек';
+      note.innerHTML = `<i class="fas fa-sync-alt fa-spin"></i> ${text}`;
     }
+  }
+
+  async function tryFetchWithProxy(url, proxy) {
+    const proxyUrl = proxy + encodeURIComponent(url);
+    console.log(`🔄 Пробуем прокси: ${proxy}`);
+    const response = await fetch(proxyUrl);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return await response.json();
   }
 
   async function fetchPairData() {
-    setLoadingStatus(true);
-    try {
-      console.log('🔄 Запрос к API через прокси allorigins...');
-      const response = await fetch(PROXY_URL);
-      if (!response.ok) {
-        throw new Error(`HTTP error ${response.status}`);
+    if (isLoading) return null;
+    isLoading = true;
+    setStatus('Поиск рабочего прокси...');
+
+    for (let i = 0; i < PROXY_LIST.length; i++) {
+      try {
+        const data = await tryFetchWithProxy(BASE_URL, PROXY_LIST[i]);
+        console.log(`✅ Прокси ${PROXY_LIST[i]} сработал`);
+        currentProxyIndex = i; // запоминаем рабочий
+        isLoading = false;
+        return parsePoolData(data);
+      } catch (err) {
+        console.warn(`❌ Прокси ${PROXY_LIST[i]} не сработал: ${err.message}`);
+        continue;
       }
-      const data = await response.json();
-      console.log('📦 Получены данные:', data);
-      
-      if (!data.items || data.items.length === 0) {
-        throw new Error('Пулы не найдены');
-      }
-
-      // Ищем пул с токеном SHRIM
-      const pool = data.items.find(item => 
-        item.token1.address === SHRIM_TOKEN_ADDRESS || 
-        item.token2.address === SHRIM_TOKEN_ADDRESS
-      );
-
-      if (!pool) {
-        throw new Error('Пул с SHRIM не найден');
-      }
-
-      console.log('🎯 Найден пул:', pool);
-
-      // Определяем позицию токена
-      const isShrimpToken1 = pool.token1.address === SHRIM_TOKEN_ADDRESS;
-      const shrimpReserve = isShrimpToken1 ? parseFloat(pool.token1.reserve) : parseFloat(pool.token2.reserve);
-      const axmReserve = isShrimpToken1 ? parseFloat(pool.token2.reserve) : parseFloat(pool.token1.reserve);
-      
-      const shrimpDecimals = isShrimpToken1 ? pool.token1.decimals : pool.token2.decimals;
-      const axmDecimals = isShrimpToken1 ? pool.token2.decimals : pool.token1.decimals;
-      
-      // Цена SHRIMP в AXM
-      const price = (axmReserve / Math.pow(10, axmDecimals)) / (shrimpReserve / Math.pow(10, shrimpDecimals));
-      
-      // Дополнительные данные
-      const change24h = pool.chg24 * 100; // в проценты
-      const volume24h = parseFloat(pool.vol24) / 1e6; // млн
-      const liquidity = parseFloat(pool.liq) / 1e6; // млн
-
-      setLoadingStatus(false);
-      return { price, change24h, volume24h, liquidity };
-    } catch (err) {
-      console.error('❌ Ошибка получения данных Axiome:', err);
-      setLoadingStatus(false, 'Ошибка загрузки: ' + err.message);
-      return null;
     }
+
+    // Если все прокси не сработали
+    isLoading = false;
+    setStatus('Все прокси недоступны. Попробуйте позже.', true);
+    console.error('Все прокси не сработали');
+    return null;
+  }
+
+  function parsePoolData(data) {
+    if (!data.items || data.items.length === 0) {
+      throw new Error('Пулы не найдены');
+    }
+
+    const pool = data.items.find(item => 
+      item.token1.address === SHRIM_TOKEN_ADDRESS || 
+      item.token2.address === SHRIM_TOKEN_ADDRESS
+    );
+
+    if (!pool) {
+      throw new Error('Пул с SHRIM не найден');
+    }
+
+    console.log('🎯 Найден пул:', pool);
+
+    const isShrimpToken1 = pool.token1.address === SHRIM_TOKEN_ADDRESS;
+    const shrimpReserve = isShrimpToken1 ? parseFloat(pool.token1.reserve) : parseFloat(pool.token2.reserve);
+    const axmReserve = isShrimpToken1 ? parseFloat(pool.token2.reserve) : parseFloat(pool.token1.reserve);
+    
+    const shrimpDecimals = isShrimpToken1 ? pool.token1.decimals : pool.token2.decimals;
+    const axmDecimals = isShrimpToken1 ? pool.token2.decimals : pool.token1.decimals;
+    
+    const price = (axmReserve / Math.pow(10, axmDecimals)) / (shrimpReserve / Math.pow(10, shrimpDecimals));
+    
+    const change24h = pool.chg24 * 100;
+    const volume24h = parseFloat(pool.vol24) / 1e6;
+    const liquidity = parseFloat(pool.liq) / 1e6;
+
+    return { price, change24h, volume24h, liquidity };
   }
 
   async function updateUI() {
-    const data = await fetchPairData();
-    if (!data) return;
+    try {
+      setStatus('Загрузка данных...');
+      const data = await fetchPairData();
+      if (!data) return;
 
-    const { price, change24h, volume24h, liquidity } = data;
+      const { price, change24h, volume24h, liquidity } = data;
 
-    // Цена
-    document.querySelector('.current-price').innerHTML = 
-      `<i class="fas fa-dollar-sign"></i> ${price.toFixed(8)} AXM`;
+      document.querySelector('.current-price').innerHTML = 
+        `<i class="fas fa-dollar-sign"></i> ${price.toFixed(8)} AXM`;
 
-    // Изменение 24ч
-    const changeEl = document.querySelector('.price-change');
-    const isPositive = change24h >= 0;
-    changeEl.innerHTML = `<i class="fas fa-caret-${isPositive ? 'up' : 'down'}"></i> ${Math.abs(change24h).toFixed(2)}%`;
-    changeEl.style.color = isPositive ? '#2ecc71' : '#e74c3c';
-    changeEl.style.background = isPositive ? '#0a3a2c80' : '#3a0a0a80';
+      const changeEl = document.querySelector('.price-change');
+      const isPositive = change24h >= 0;
+      changeEl.innerHTML = `<i class="fas fa-caret-${isPositive ? 'up' : 'down'}"></i> ${Math.abs(change24h).toFixed(2)}%`;
+      changeEl.style.color = isPositive ? '#2ecc71' : '#e74c3c';
+      changeEl.style.background = isPositive ? '#0a3a2c80' : '#3a0a0a80';
 
-    // Ликвидность
-    document.querySelector('.market-cap').innerHTML = 
-      `<i class="fas fa-chart-pie"></i> Ликвидность: $${liquidity.toFixed(2)}M`;
+      document.querySelector('.market-cap').innerHTML = 
+        `<i class="fas fa-chart-pie"></i> Ликвидность: $${liquidity.toFixed(2)}M`;
 
-    // Карточки статистики
-    const statCards = document.querySelectorAll('.stat-card');
-    if (statCards[0]) statCards[0].querySelector('.stat-number').textContent = `${price.toFixed(6)} AXM`;
-    if (statCards[1]) statCards[1].querySelector('.stat-number').textContent = `$${volume24h.toFixed(1)}K`;
+      const statCards = document.querySelectorAll('.stat-card');
+      if (statCards[0]) statCards[0].querySelector('.stat-number').textContent = `${price.toFixed(6)} AXM`;
+      if (statCards[1]) statCards[1].querySelector('.stat-number').textContent = `$${volume24h.toFixed(1)}K`;
 
-    // Обновление графика
-    const now = new Date();
-    const timeLabel = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    priceHistory.push({ x: timeLabel, y: price });
-    if (priceHistory.length > 20) priceHistory.shift();
+      // График
+      const now = new Date();
+      const timeLabel = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      priceHistory.push({ x: timeLabel, y: price });
+      if (priceHistory.length > 20) priceHistory.shift();
 
-    if (priceChart) {
-      priceChart.data.labels = priceHistory.map(p => p.x);
-      priceChart.data.datasets[0].data = priceHistory.map(p => p.y);
-      priceChart.update();
+      if (priceChart) {
+        priceChart.data.labels = priceHistory.map(p => p.x);
+        priceChart.data.datasets[0].data = priceHistory.map(p => p.y);
+        priceChart.update();
+      }
+
+      setStatus('Данные с Axiome Trade · обновляются каждые 60 сек');
+      console.log(`✅ Обновлено: цена ${price.toFixed(8)} AXM, изм. ${change24h.toFixed(2)}%`);
+    } catch (err) {
+      console.error('Ошибка в updateUI:', err);
+      setStatus('Ошибка: ' + err.message, true);
     }
-
-    console.log(`✅ Обновлено: цена ${price.toFixed(8)} AXM, изм. ${change24h.toFixed(2)}%`);
   }
 
   // Запуск

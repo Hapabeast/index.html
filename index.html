@@ -4,16 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
   <title>Shrimp and Peace · SaP</title>
+  
+  <!-- Библиотека графиков -->
   <script src="https://unpkg.com/lightweight-charts@4.0.0/dist/lightweight-charts.standalone.production.js"></script>
   
-  <!-- 🔗 ПОДКЛЮЧЕНИЕ ШРИФТОВ И ИКОНОК -->
+  <!-- Шрифты и иконки -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   
   <style>
-    /* ========== 🎨 ОСНОВНЫЕ ЦВЕТА И СТИЛИ ========== */
     * {
       margin: 0;
       padding: 0;
@@ -30,23 +31,8 @@
       position: relative;
       overflow-x: hidden;
     }
-    
-    .market-cap {
-      font-size: 1.1rem;
-      color: #bde0fe;
-      margin-bottom: 1.2rem;
-    }
-    
-    .chart-container {
-      background: #0b2a38;
-      border-radius: 16px;
-      padding: 12px;
-      border: 1px solid #0096c7;
-      margin: 1rem 0;
-      height: 120px;
-    }
-    
-    /* ===== 🦐 ФОН С КРЕВЕТКОЙ (70% ПРОЗРАЧНОСТИ) ===== */
+
+    /* Фон с креветкой */
     .shrimp-bg {
       position: fixed;
       top: 0;
@@ -67,7 +53,7 @@
       transform: rotate(-5deg);
     }
 
-    /* ===== 🫧 ПУЗЫРЬКИ ВОЗДУХА ===== */
+    /* Пузырьки */
     .bubbles-container {
       position: fixed;
       top: 0;
@@ -94,7 +80,6 @@
       100% { bottom: 110%; opacity: 0; transform: translateX(20px) scale(1.2); }
     }
 
-    /* ===== 📦 КОНТЕЙНЕР ===== */
     .container {
       max-width: 1280px;
       margin: 0 auto;
@@ -103,7 +88,7 @@
       z-index: 2;
     }
 
-    /* ===== 🧭 НАВИГАЦИЯ ===== */
+    /* Навигация */
     .navbar {
       display: flex;
       align-items: center;
@@ -117,7 +102,6 @@
       z-index: 100;
       border-radius: 0 0 20px 20px;
     }
-
     .logo {
       font-size: 1.9rem;
       font-weight: 800;
@@ -138,7 +122,6 @@
       background-clip: text;
       color: transparent;
     }
-
     .nav-links {
       display: flex;
       gap: 2.5rem;
@@ -158,7 +141,7 @@
       margin-right: 6px;
     }
 
-    /* ===== 🌟 HERO (ГЛАВНЫЙ БЛОК) ===== */
+    /* Hero */
     .hero {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -166,7 +149,6 @@
       align-items: center;
       padding: 3rem 0 4rem;
     }
-
     .hero-badge {
       display: inline-block;
       background: rgba(0, 180, 216, 0.2);
@@ -184,7 +166,6 @@
       margin-right: 8px;
       color: #ffd166;
     }
-
     .hero h1 {
       font-size: 3.8rem;
       font-weight: 800;
@@ -194,15 +175,38 @@
       color: #ffffff;
       text-shadow: 0 4px 20px #0077b6;
     }
-
     .hero-description {
       font-size: 1.2rem;
       color: #b5e2fa;
       margin-bottom: 2rem;
       max-width: 90%;
     }
+    .btn-connect-account {
+      background: transparent;
+      border: 1.5px solid #48cae4;
+      color: #e0fbfc;
+      padding: 0.9rem 2.2rem;
+      border-radius: 60px;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      backdrop-filter: blur(4px);
+      margin-top: 1.8rem;
+    }
+    .btn-connect-account i {
+      opacity: 0.6;
+    }
+    .btn-connect-account:hover {
+      border-color: #ade8f4;
+      background: rgba(0, 180, 216, 0.15);
+      color: white;
+    }
 
-    /* 📊 БЛОК С ГРАФИКОМ (СВЕЧИ) */
+    /* Визуальный блок с графиком */
     .hero-visual {
       background: rgba(10, 50, 70, 0.4);
       backdrop-filter: blur(12px);
@@ -238,38 +242,13 @@
       color: #bde0fe;
       margin-bottom: 1.2rem;
     }
-    .candle-chart {
+    .chart-container {
       background: #0b2a38;
-      height: 120px;
       border-radius: 16px;
       padding: 12px;
-      display: flex;
-      align-items: flex-end;
-      gap: 8px;
       border: 1px solid #0096c7;
       margin: 1rem 0;
-    }
-    .candle {
-      flex: 1;
-      background: #2ecc71;
-      height: calc(100% * 0.7);
-      border-radius: 4px 4px 0 0;
-      position: relative;
-    }
-    .candle.red {
-      background: #e74c3c;
-      height: calc(100% * 0.5);
-    }
-    .candle:nth-child(3) { height: 90%; }
-    .candle:nth-child(5) { height: 60%; background: #e74c3c; }
-    .candle::after {
-      content: '';
-      position: absolute;
-      top: -8px;
-      left: 50%;
-      width: 2px;
-      height: 8px;
-      background: inherit;
+      height: 120px;
     }
     .chart-note {
       color: #9ad4e6;
@@ -278,31 +257,7 @@
       text-align: right;
     }
 
-    /* ===== 📈 СТАТИСТИКА ===== */
-.btn-connect-account {
-      background: transparent;
-      border: 1.5px solid #48cae4;
-      color: #e0fbfc;
-      padding: 0.9rem 2.2rem;
-      border-radius: 60px;
-      font-weight: 600;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: 0.2s;
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      backdrop-filter: blur(4px);
-      margin-top: 1.8rem;
-    }
-    .btn-connect-account i {
-      opacity: 0.6;
-    }
-    .btn-connect-account:hover {
-      border-color: #ade8f4;
-      background: rgba(0, 180, 216, 0.15);
-      color: white;
-    }
+    /* Статистика */
     .stats-section {
       padding: 2rem 0 3rem;
     }
@@ -341,7 +296,7 @@
       opacity: 0.6;
     }
 
-    /* ===== 🦐 ОСОБЕННОСТИ ===== */
+    /* Фишки */
     .section-title {
       font-size: 2.4rem;
       font-weight: 700;
@@ -352,7 +307,6 @@
       opacity: 0.6;
       margin-right: 12px;
     }
-
     .features-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -386,7 +340,7 @@
       color: #b5e2fa;
     }
 
-    /* ===== 👣 ФУТЕР ===== */
+    /* Футер */
     .footer {
       border-top: 1px solid #1e4b5e;
       padding: 2.5rem 0;
@@ -410,7 +364,6 @@
       opacity: 0.6;
     }
 
-    /* ===== 📱 АДАПТИВНОСТЬ ===== */
     @media (max-width: 1024px) {
       .container { padding: 0 1.5rem; }
       .hero h1 { font-size: 2.8rem; }
@@ -424,17 +377,17 @@
 </head>
 <body>
 
-<!-- 🦐 ФОН С КРЕВЕТКОЙ -->
+<!-- Фон с креветкой -->
 <div class="shrimp-bg">
   <div class="shrimp-icon">
     <i class="fas fa-shrimp"></i>
   </div>
 </div>
 
-<!-- 🫧 ПУЗЫРЬКИ -->
+<!-- Пузырьки -->
 <div class="bubbles-container" id="bubbles"></div>
 
-<!-- 🧭 НАВИГАЦИЯ -->
+<!-- Навигация -->
 <div class="container">
   <nav class="navbar">
     <div class="logo">
@@ -442,16 +395,13 @@
       <span>Shrimp & Peace</span>
     </div>
     <div class="nav-links">
-      <!-- ТОЛЬКО РЕФЕРАЛЫ И АКВАРИУМ -->
       <a href="#"><i class="fas fa-users"></i> Рефералы</a>
       <a href="#"><i class="fas fa-water"></i> Аквариум</a>
     </div>
-    <!-- КНОПКА ПОДКЛЮЧИТЬ КОШЕЛЁК УБРАНА -->
   </nav>
 </div>
 
-<!-- 🌟 HERO -->
-<!-- 🌟 HERO -->
+<!-- Hero -->
 <section class="container hero">
   <div>
     <span class="hero-badge"><i class="fas fa-arrow-trend-up"></i> Креветка растёт · SaP</span>
@@ -462,7 +412,7 @@
     <button class="btn-connect-account"><i class="fas fa-link"></i> Подключить аккаунт</button>
   </div>
   
-  <!-- 📊 БЛОК С ЦЕНОЙ И КАПИТАЛИЗАЦИЕЙ -->
+  <!-- Блок с ценой и графиком -->
   <div class="hero-visual">
     <div class="price-header">
       <span class="current-price"><i class="fas fa-dollar-sign"></i> 0.042 BNB</span>
@@ -480,7 +430,8 @@
     </div>
   </div>
 </section>
-<!-- 📈 СТАТИСТИКА -->
+
+<!-- Статистика -->
 <div class="container stats-section">
   <div class="stats-grid">
     <div class="stat-card">
@@ -498,7 +449,7 @@
   </div>
 </div>
 
-<!-- 🦐 КЛЮЧЕВЫЕ ФИШКИ -->
+<!-- Фишки -->
 <div class="container">
   <h2 class="section-title"><i class="fas fa-shrimp"></i> Почему Shrimp and Peace?</h2>
   <div class="features-grid">
@@ -520,7 +471,7 @@
   </div>
 </div>
 
-<!-- 👣 ФУТЕР (ТОЛЬКО TELEGRAM И КОПИРАЙТ) -->
+<!-- Футер -->
 <footer class="container footer">
   <div style="display: flex; align-items: center; gap: 12px;">
     <i class="fas fa-shrimp" style="font-size: 1.8rem; opacity: 0.6;"></i>
@@ -529,16 +480,15 @@
   <div class="footer-links">
     <a href="#"><i class="fab fa-telegram"></i> Telegram</a>
   </div>
-  <!-- СОЦСЕТИ УБРАНЫ -->
   <div style="width:100%; margin-top: 1.5rem; text-align: center; font-size: 0.85rem; color: #6ab0c9;">
     <i class="fas fa-water"></i> Погружайся в экосистему Shrimp and Peace
   </div>
 </footer>
 
-<!-- ⚙️ JAVASCRIPT -->
+<!-- JavaScript -->
 <script>
   (function(){
-    // Пузырьки
+    // Генерация пузырьков
     const bubblesContainer = document.getElementById('bubbles');
     for (let i = 0; i < 25; i++) {
       const bubble = document.createElement('div');
@@ -554,7 +504,7 @@
     }
   })();
 
-  // Инициализация графика
+  // График и данные
   let chart, candlestickSeries;
 
   function initChart() {
@@ -613,7 +563,7 @@
     return true;
   }
 
-  // API Mobula (заглушка, пока не готово)
+  // Mobula API
   const MOBULA_API_KEY = '4824b79f-2c36-46f1-bf84-3bdd6e58ff4e';
   const TOKEN_ADDRESS = 'axm1lq9fjtgtd50kzf30uqgae3mh0tmp54ek4gmak8d97930dhgy4rgqaxzuzz';
 
@@ -637,12 +587,16 @@
     }
   }
 
-  // Запуск после загрузки DOM
   document.addEventListener('DOMContentLoaded', () => {
     if (initChart()) {
       fetchAndUpdateData();
       setInterval(fetchAndUpdateData, 30000);
     }
+  });
+
+  // Кнопка "Подключить аккаунт"
+  document.querySelector('.btn-connect-account')?.addEventListener('click', () => {
+    alert('🦐 Подключение аккаунта — скоро будет доступно!');
   });
 </script>
 

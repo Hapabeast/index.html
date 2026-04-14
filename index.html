@@ -488,7 +488,7 @@
 <!-- JavaScript -->
 <script>
   (function(){
-    // Пузырьки
+    // Пузырьки (без изменений)
     const bubblesContainer = document.getElementById('bubbles');
     for (let i = 0; i < 25; i++) {
       const bubble = document.createElement('div');
@@ -504,7 +504,7 @@
     }
   })();
 
-  // ---------- ГРАФИК CHART.JS ----------
+  // ---------- ГРАФИК ----------
   let priceChart;
   let priceHistory = [];
 
@@ -543,31 +543,40 @@
     return true;
   }
 
-  // ---------- API AXIOME (прямая ссылка на пулы) ----------
-  const API_URL = 'https://api-idx.axiomechain.pro/swap/pools/infinite?perPage=40';
+  // ---------- API AXIOME (с CORS-прокси) ----------
+  const BASE_URL = 'https://api-idx.axiomechain.pro/swap/pools/infinite?perPage=40';
+  const PROXY_URL = 'https://corsproxy.io/?' + encodeURIComponent(BASE_URL);
+  
   // Адрес токена SHRIM (Shrimps & Peace) из ответа API
   const SHRIM_TOKEN_ADDRESS = 'axm13falgv7wf8v3pqcwhr7suvm8e8j0hu03fjmtwrh2vek2589tdazq5p0atj';
 
   async function fetchPairData() {
     try {
-      const response = await fetch(API_URL);
+      console.log('🔄 Запрос к API через прокси...');
+      const response = await fetch(PROXY_URL);
+      if (!response.ok) {
+        throw new Error(`HTTP error ${response.status}`);
+      }
       const data = await response.json();
+      console.log('📦 Получены данные:', data);
       
       if (!data.items || data.items.length === 0) {
-        console.warn('Пулы не найдены');
+        console.warn('⚠️ Пулы не найдены');
         return null;
       }
 
-      // Ищем пул с нашим токеном SHRIM
+      // Ищем пул с токеном SHRIM
       const pool = data.items.find(item => 
         item.token1.address === SHRIM_TOKEN_ADDRESS || 
         item.token2.address === SHRIM_TOKEN_ADDRESS
       );
 
       if (!pool) {
-        console.warn('Пул с SHRIM не найден');
+        console.warn('⚠️ Пул с SHRIM не найден');
         return null;
       }
+
+      console.log('🎯 Найден пул:', pool);
 
       // Определяем позицию токена
       const isShrimpToken1 = pool.token1.address === SHRIM_TOKEN_ADDRESS;
@@ -587,7 +596,10 @@
 
       return { price, change24h, volume24h, liquidity };
     } catch (err) {
-      console.error('Ошибка получения данных Axiome:', err);
+      console.error('❌ Ошибка получения данных Axiome:', err);
+      // Показываем ошибку на странице
+      document.querySelector('.chart-note').innerHTML = 
+        '<i class="fas fa-exclamation-triangle"></i> Ошибка загрузки данных. Проверьте консоль.';
       return null;
     }
   }
@@ -630,6 +642,9 @@
       priceChart.update();
     }
 
+    // Восстанавливаем подпись, если всё ок
+    document.querySelector('.chart-note').innerHTML = 
+      '<i class="far fa-clock"></i> Данные с Axiome Trade · обновляются каждые 60 сек';
     console.log(`✅ Обновлено: цена ${price.toFixed(8)} AXM, изм. ${change24h.toFixed(2)}%`);
   }
 
@@ -637,7 +652,7 @@
   document.addEventListener('DOMContentLoaded', () => {
     initChart();
     updateUI();
-    setInterval(updateUI, 60000); // обновление каждую минуту
+    setInterval(updateUI, 60000);
   });
 
   // Кнопка "Подключить аккаунт"
@@ -645,6 +660,6 @@
     alert('🦐 Подключение аккаунта — скоро будет доступно!');
   });
 </script>
-
+  
 </body>
 </html>

@@ -6,7 +6,7 @@
   <title>Shrimp and Peace · SaP</title>
   
   <!-- Библиотека графиков -->
-  <script src="https://unpkg.com/lightweight-charts@4.0.0/dist/lightweight-charts.standalone.production.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   
   <!-- Шрифты и иконки -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -412,24 +412,42 @@
     <button class="btn-connect-account"><i class="fas fa-link"></i> Подключить аккаунт</button>
   </div>
   
-  <!-- Блок с ценой и графиком -->
-  <div class="hero-visual">
-    <div class="price-header">
-      <span class="current-price"><i class="fas fa-dollar-sign"></i> 0.042 BNB</span>
-      <span class="price-change"><i class="fas fa-caret-up"></i> +3.2%</span>
-    </div>
-    <div class="market-cap">
-      <i class="fas fa-chart-pie"></i> Капитализация: ~ 128,400 BNB
-    </div>
-    <div id="chart-container" class="chart-container"></div>
-    <div class="chart-note">
-      <i class="far fa-clock"></i> Обновление через API Axiome (скоро)
-    </div>
-    <div style="margin-top: 12px; color: #aad8e6; font-size:0.9rem;">
-      <i class="fas fa-robot"></i> синхронизация с Telegram ботом
-    </div>
+ <!-- Блок с ценой и графиком -->
+<div class="hero-visual">
+  <div class="price-header">
+    <span class="current-price"><i class="fas fa-dollar-sign"></i> 0.042 BNB</span>
+    <span class="price-change"><i class="fas fa-caret-up"></i> +3.2%</span>
   </div>
-</section>
+  <div class="market-cap">
+    <i class="fas fa-chart-pie"></i> Капитализация: ~ 128,400 BNB
+  </div>
+  <!-- TradingView Widget BEGIN -->
+  <div class="tradingview-widget-container" style="height:120px; width:100%;">
+    <div class="tradingview-widget-container__widget" style="height:120px; width:100%;"></div>
+    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
+    {
+      "symbol": "BINANCE:BNBUSDT",
+      "width": "100%",
+      "height": "120",
+      "locale": "ru",
+      "dateRange": "1D",
+      "colorTheme": "dark",
+      "isTransparent": true,
+      "autosize": true,
+      "largeChartUrl": ""
+    }
+    </script>
+  </div>
+  <!-- TradingView Widget END -->
+  <div id="chart-container"
+    class="chart-container"></div>
+  <div class="chart-note">
+    <i class="far fa-clock"></i> Обновление через API Axiome (скоро)
+  </div>
+  <div style="margin-top: 12px; color: #aad8e6; font-size:0.9rem;">
+    <i class="fas fa-robot"></i> синхронизация с Telegram ботом
+  </div>
+</div>
 
 <!-- Статистика -->
 <div class="container stats-section">
@@ -488,7 +506,7 @@
 <!-- JavaScript -->
 <script>
   (function(){
-    // Генерация пузырьков
+    // Пузырьки
     const bubblesContainer = document.getElementById('bubbles');
     for (let i = 0; i < 25; i++) {
       const bubble = document.createElement('div');
@@ -504,66 +522,56 @@
     }
   })();
 
-  // График и данные
-  let chart, candlestickSeries;
+  // График Chart.js (простой и надёжный)
+  let priceChart;
 
   function initChart() {
-    const container = document.getElementById('chart-container');
-    if (!container) {
-      console.error('Контейнер графика не найден');
-      return false;
-    }
-    if (typeof LightweightCharts === 'undefined') {
-      console.error('Библиотека LightweightCharts не загружена');
-      return false;
-    }
+    const ctx = document.getElementById('chart-container').getContext('2d');
+    if (!ctx) return false;
 
-    chart = LightweightCharts.createChart(container, {
-      width: container.clientWidth,
-      height: 120,
-      layout: {
-        background: { color: '#0b2a38' },
-        textColor: '#9ad4e6',
+    // Если график уже есть — уничтожим перед созданием нового
+    if (priceChart) priceChart.destroy();
+
+    priceChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: ['10:00', '11:00', '12:00', '13:00', '14:00', '15:00'],
+        datasets: [{
+          label: 'Цена SHRIMP (USD)',
+          data: [0.040, 0.042, 0.045, 0.043, 0.046, 0.044],
+          borderColor: '#2ecc71',
+          backgroundColor: 'rgba(46, 204, 113, 0.1)',
+          borderWidth: 2,
+          pointBackgroundColor: '#ade8f4',
+          pointBorderColor: '#0b2a38',
+          tension: 0.2,
+          fill: true
+        }]
       },
-      grid: {
-        vertLines: { color: '#1e4b5e' },
-        horzLines: { color: '#1e4b5e' },
-      },
-      timeScale: {
-        timeVisible: true,
-        secondsVisible: false,
-      },
-    });
-
-    candlestickSeries = chart.addCandlestickSeries({
-      upColor: '#2ecc71',
-      downColor: '#e74c3c',
-      borderDownColor: '#e74c3c',
-      borderUpColor: '#2ecc71',
-      wickDownColor: '#e74c3c',
-      wickUpColor: '#2ecc71',
-    });
-
-    // Тестовые данные
-    const dummyData = [
-      { time: '2024-04-01', open: 0.040, high: 0.045, low: 0.039, close: 0.042 },
-      { time: '2024-04-02', open: 0.042, high: 0.048, low: 0.041, close: 0.046 },
-      { time: '2024-04-03', open: 0.046, high: 0.047, low: 0.043, close: 0.044 },
-      { time: '2024-04-04', open: 0.044, high: 0.046, low: 0.042, close: 0.045 },
-    ];
-    candlestickSeries.setData(dummyData);
-
-    window.addEventListener('resize', () => {
-      if (container) {
-        chart.applyOptions({ width: container.clientWidth });
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { mode: 'index', intersect: false }
+        },
+        scales: {
+          x: { 
+            grid: { color: '#1e4b5e' },
+            ticks: { color: '#9ad4e6' }
+          },
+          y: { 
+            grid: { color: '#1e4b5e' },
+            ticks: { color: '#9ad4e6' }
+          }
+        }
       }
     });
-
-    console.log('✅ График инициализирован');
+    console.log('✅ График Chart.js инициализирован');
     return true;
   }
 
-  // Mobula API
+  // API Mobula (обновляет цену и капитализацию)
   const MOBULA_API_KEY = '4824b79f-2c36-46f1-bf84-3bdd6e58ff4e';
   const TOKEN_ADDRESS = 'axm1lq9fjtgtd50kzf30uqgae3mh0tmp54ek4gmak8d97930dhgy4rgqaxzuzz';
 
@@ -587,11 +595,11 @@
     }
   }
 
+  // Запуск при загрузке
   document.addEventListener('DOMContentLoaded', () => {
-    if (initChart()) {
-      fetchAndUpdateData();
-      setInterval(fetchAndUpdateData, 30000);
-    }
+    initChart();
+    fetchAndUpdateData();
+    setInterval(fetchAndUpdateData, 30000);
   });
 
   // Кнопка "Подключить аккаунт"
@@ -599,6 +607,6 @@
     alert('🦐 Подключение аккаунта — скоро будет доступно!');
   });
 </script>
-
+  
 </body>
 </html>
